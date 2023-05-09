@@ -1,163 +1,163 @@
-/*******************************************************************************
-*  skSPIlib.c - ＳＰＩ通信を行う関数ライブラリ                                 *
-*                                                                              *
-*    SPI_Init            - ＳＰＩモード(マスター)の設定と初期化を行う処理      *
-*    SPI_setDataMode     - ＳＰＩの転送モード設定を行う処理                    *
-*    SPI_setClockDivider - ＳＰＩの通信速度設定を行う処理                      *
-*    SPI_transfer        - ＳＰＩ通信でのデータ送信とデータ受信を行う処理      *
-*                                                                              *
-*    メモ：SDIピンは必ず「デジタル入力ピン」に設定を行って下さい。             *
-*          使用するSS(CS)ピンは初期化時にHIGHにします。                        *
-*          SSP2を利用する場合は、skI2Clib.hに"#define SPI_MSSP2_USE"を宣言する *
-* ============================================================================ *
-*  VERSION DATE        BY                    CHANGE/COMMENT                    *
-* ---------------------------------------------------------------------------- *
-*  1.00    2012-04-30  きむ茶工房(きむしげ)  Create                            *
-*  1.01    2012-12-29  きむ茶工房(きむしげ)  XC8 C Compiler 対応に変更         *
-*  1.10    2013-02-18  きむ茶工房(きむしげ)  SPI_Init関数を変更                *
-*  1.11    2014-06-21  きむ茶工房(きむしげ)  SPI_Init関数のコメントを変更      *
-*  2.00    2014-09-03  きむ茶工房(きむしげ)  18F25K22の動作確認,割込み処理止めた*
-*  2.10    2014-09-27  きむ茶工房(きむしげ)  SPI_Init関数を変更                *
-*  3.00    2015-04-05  きむ茶工房(きむしげ)  速度/転送mode関数を追加           *
-*  3.10    2015-04-20  きむ茶工房(きむしげ)  SSP1/SSP2両方と16F193xに対応      *
-*  3.11    2015-05-23  きむ茶工房(きむしげ)  16F1825/1829に対応                *
-* ============================================================================ *
-*  PIC 12F1822 16F18xx 16F193x 18F25K22                                        *
-*  MPLAB IDE(V8.84) MPLAB X(V2.15)                                             *
-*  MPLAB(R) XC8 C Compiler Version 1.00/1.32                                   *
-*******************************************************************************/
-#include <xc.h>
-#include "skSPI.h"
+/* ************************************************ *****************************
+* skSPIlib.c - Function library for SPI communication *
+* *
+* SPI_Init - Processing to set and initialize SPI mode (master) *
+* SPI_setDataMode - Processing to set SPI transfer mode *
+* SPI_setClockDivider - Process to set SPI communication speed *
+* SPI_transfer - Processing to send and receive data via SPI communication *
+* *
+* Note: SDI pin must be set to "digital input pin". *
+* The SS (CS) pin used should be HIGH during initialization. *
+* When using SSP2, declare "#define SPI_MSSP2_USE" in skI2Clib.h *
+* ================================================= ===========================*
+* VERSION DATE BY CHANGE/COMMENT *
+* ------------------------------------------------- ---------------------------*
+* 1.00 2012-04-30 Kimushige Create *
+* 1.01 2012-12-29 Changed to support Kimushige XC8 C Compiler *
+* 1.10 2013-02-18 Change Kimushige SPI_Init function *
+* 1.11 2014-06-21 Kimushige changed comment of SPI_Init function *
+* 2.00 2014-09-03 Kimushige Kobo 18F25K22 operation check, interrupt processing stopped *
+* 2.10 2014-09-27 Change Kimushige SPI_Init function *
+* 3.00 2015-04-05 Added Kimushige speed/transfer mode functions *
+* 3.10 2015-04-20 Supports both Kimushige SSP1/SSP2 and 16F193x *
+* 3.11 2015-05-23 Compatible with Kimushige 16F1825/1829 *
+* ================================================= ===========================*
+* PIC 12F1822 16F18xx 16F193x 18F25K22 *
+* MPLAB IDE(V8.84) MPLAB X(V2.15) *
+* MPLAB(R) XC8 C Compiler Version 1.00/1.32 *
+**************************************************** **************************** */
+#include < xc.h > _ 
+#include " skSPI.h " _ 
 
-#define _30F6014A
-/*******************************************************************************
-*  SPI_Init(mode,divider,sdo)                                                  *
-*    ＳＰＩモードの設定と初期化を行う処理                                      *
-*    割り込みでの処理を止めて直接"SSP1IF"を見る様にしています                  *
-*                                                                              *
-*    mode :   SPIの転送モードを設定します(クロック極性とクロック位相の組合せ)  *
-*             SPI_MODE0 = 極性(0:LOW)  位相(0:アイドル0Vで、0V->5Vに変化で転送)*
-*             SPI_MODE1 = 極性(0:LOW)  位相(1:アイドル0Vで、5V->0Vに変化で転送)*
-*             SPI_MODE2 = 極性(1:HIGH) 位相(0:アイドル5Vで、5V->0Vに変化で転送)*
-*             SPI_MODE3 = 極性(1:HIGH) 位相(1:アイドル5Vで、0V->5Vに変化で転送)*
-*    divider :SPIの通信速度を設定します                                        *
-*             SPI_CLOCK_DIV4   = Fosc/4                                        *
-*             SPI_CLOCK_DIV16  = Fosc/16                                       *
-*             SPI_CLOCK_DIV64  = Fosc/64                                       *
-*             SPI_CLOCK_DIVT2  = TMR2の出力の1/2                               *
-*             SPI_CLOCK_DIVADD = FOSC/((SSPxADD + 1)*4)                        *
-*    sdo :    使用するSDO送信のピン番号を指定する                              *
-*******************************************************************************/
-void SPI_Init(void)
+# define  _30F6014A
+/* ************************************************ *****************************
+* SPI_Init(mode, divider, sdo) *
+* Processing to set and initialize SPI mode *
+* Stops interrupt processing and looks at "SSP1IF" directly *
+* *
+* mode : Set SPI transfer mode (combination of clock polarity and clock phase) *
+* SPI_MODE0 = Polarity (0: LOW) Phase (0: at idle 0V, transfer with change from 0V to 5V) *
+* SPI_MODE1 = Polarity (0: LOW) Phase (1: at idle 0V, transfer with change from 5V to 0V) *
+* SPI_MODE2 = Polarity (1: HIGH) Phase (0: at idle 5V, transfer with change from 5V to 0V) *
+* SPI_MODE3 = Polarity (1: HIGH) Phase (1: at idle 5V, transfer with change from 0V to 5V) *
+*divider : Set SPI communication speed*
+* SPI_CLOCK_DIV4 = Fosc/4 *
+* SPI_CLOCK_DIV16 = Fosc/16 *
+* SPI_CLOCK_DIV64 = Fosc/64 *
+* SPI_CLOCK_DIVT2 = 1/2 the output of TMR2 *
+* SPI_CLOCK_DIVADD = FOSC/((SSPxADD + 1)*4) *
+* sdo : Specify the SDO transmission pin number to use *
+**************************************************** **************************** */
+void  SPI_Init ( void )
 {
-     //char con , stat ;
+ // char con , stat ;
 
-#if defined(_12F1822)
-     SDOSEL = 0 ;                  // 7番ピン(RA0)をSDO送信ピンとする
-     if (sdo == 3) SDOSEL = 1 ;    // 3番ピン(RA4)をSDO送信ピンとする
-#endif
+#if defined (_12F1822)
+SDOSEL = 0 ; // Set pin 7 (RA0) as SDO transmit pin
+ if (sdo == 3 ) SDOSEL = 1 ; // Set pin 3 (RA4) as SDO transmit pin
+# endif
 
-#if defined(_16F1823) 
-     SDOSEL = 0 ;                  // 8番ピン(RC2)をSDO送信ピンとする
-     if (sdo == 3) SDOSEL = 1 ;    // 3番ピン(RA4)をSDO送信ピンとする
-#endif
+#if defined (_16F1823)
+SDOSEL = 0 ; // Use pin 8 (RC2) as SDO transmit pin
+ if (sdo == 3 ) SDOSEL = 1 ; // Set pin 3 (RA4) as SDO transmit pin
+# endif
 
-#if defined(_16F1825) 
-     SDO1SEL = 0 ;                 // 8番ピン(RC2)をSDO1送信ピンとする
-     if (sdo == 3) SDO1SEL = 1 ;   // 3番ピン(RA4)をSDO1送信ピンとする
-#endif
+#if defined (_16F1825)
+SDO1SEL = 0 ; // Use pin 8 (RC2) as SDO1 transmit pin
+ if (sdo == 3 ) SDO1SEL = 1 ; // Set pin 3 (RA4) as SDO1 send pin
+# endif
 
-#if defined(_16F1826) || defined(_16F1827)
-     SDO1SEL = 0 ;                 //  8番ピン(RB2)をSDO1送信ピンとする
-     if (sdo == 15) SDO1SEL = 1 ;  // 15番ピン(RA6)をSDO1送信ピンとする
-#endif
+# if defined(_16F1826) || defined(_16F1827)
+SDO1SEL = 0 ; // Use pin 8 (RB2) as SDO1 transmit pin
+ if (sdo == 15 ) SDO1SEL = 1 ; // Set 15th pin (RA6) as SDO1 send pin
+# endif
 
-#if defined(_16F1829) 
-     SDO2SEL = 0 ;                 // 15番ピン(RC1)をSDO2送信ピンとする
-     if (sdo == 2) SDO2SEL = 1 ;   //  2番ピン(RA5)をSDO2送信ピンとする
-#endif
+#if defined (_16F1829)
+SDO2SEL = 0 ; // Set pin 15 (RC1) as SDO2 transmit pin
+ if (sdo == 2 ) SDO2SEL = 1 ; // Set pin 2 (RA5) as SDO2 transmit pin
+# endif
 /*
-     con  = 0b00100000 ;       // クロック極性はLOW　マスタモードでFOSC/4のクロックに設定
-     stat = 0b00000000 ;       // クロック位相は立下りでデータを送信
-     con  = con | divider ;    // 指定のクロック速度を設定する
-     if (mode == SPI_MODE1 || mode == SPI_MODE3) {
-          stat = stat | 0x40 ; // 指定のクロック位相を設定する
-     }
-     if (mode == SPI_MODE2 || mode == SPI_MODE3) {
-          con = con | 0x10 ;   // 指定のクロック極性を設定する
-     }
-     SPI_SSPCON1 = con ;
-     SPI_SSPSTAT = stat ;
-     SPI_SSPIF   = 0 ;         // ＳＰＩの割込みフラグを初期化する
-     PEIE  = 1 ;               // 周辺装置割込み有効
-     GIE   = 1 ;               // 全割込み処理を許可する
+con = 0b00100000 ; // clock polarity set to FOSC/4 clock in LOW master mode
+stat = 0b00000000 ; // send data on falling clock phase
+con = con | divider ; // set the specified clock speed
+if (mode == SPI_MODE1 || mode == SPI_MODE3) {
+stat = stat | 0x40 ; // Set specified clock phase
+}
+if (mode == SPI_MODE2 || mode == SPI_MODE3) {
+con = con | 0x10 ; // set specified clock polarity
+}
+SPI_SSPCON1 = con ;
+SPI_SSPSTAT = stat ;
+SPI_SSPIF = 0 ; // Initialize SPI interrupt flag
+PEIE = 1 ; // Peripheral interrupt enabled
+GIE = ​​1 ; // Allow all interrupt processing
 */
 
-#if defined(_30F6014A)
-    SPI1CONbits.MSTEN = 1;
-    SPI1STATbits.SPIROV = 0;
-    SPI1CONbits.CKE = 0;
-    SPI1CONbits.CKP = 1;
-    SPI1CONbits.DISSDO = 0;
-    SPI1CONbits.FRMEN = 0;
-    SPI1CONbits.MODE16 = 0;
-    SPI1CONbits.SMP = 0;
-    SPI1CONbits.SSEN = 0;
-    SPI1CONbits.PPRE = 0;
-    SPI1CONbits.SPRE = 7;
-    SPI1STATbits.SPIEN = 1;
-#endif
-    
+#if defined (_30F6014A)
+SPI1CONbits.MSTEN = 1 ; _
+SPI1STATbits.SPIROV = 0 ; _
+SPI1CONbits.CKE = 0 ; _
+SPI1CONbits.CKP = 1 ; _
+SPI1CONbits.DISSDO = 0 ; _
+SPI1CONbits.FRMEN = 0 ; _
+SPI1CONbits. MODE16 = 0 ;
+SPI1CONbits.SMP = 0 ; _
+SPI1CONbits.SSEN = 0 ; _
+SPI1CONbits.PPRE = 0 ; _
+SPI1CONbits.SPRE = 7 ; _
+SPI1STATbits.SPIEN = 1 ; _
+# endif
+
 }
-/*******************************************************************************
-*  SPI_setDataMode(mode)                                                       *
-*    ＳＰＩの転送モード設定を行う処理                                          *
-*    mode :   SPIの転送モードを設定します(クロック極性とクロック位相の組合せ)  *
-*******************************************************************************/
+/* ************************************************ *****************************
+* SPI_setDataMode(mode) *
+* Processing to set SPI transfer mode *
+* mode : Set SPI transfer mode (combination of clock polarity and clock phase) *
+**************************************************** **************************** */
 
 /*
 void SPI_setDataMode(char mode)
 {
-     if (mode == SPI_MODE1 || mode == SPI_MODE3) {
-          SPI_SSPSTAT = SPI_SSPSTAT | 0x40 ; // 指定のクロック位相を１設定する
-     } else {
-          SPI_SSPSTAT = SPI_SSPSTAT & 0xBF ; // 指定のクロック位相を０設定する
-     }
-     if (mode == SPI_MODE2 || mode == SPI_MODE3) {
-          SPI_SSPCON1 = SPI_SSPCON1 | 0x10 ; // 指定のクロック極性を１設定する
-     } else {
-          SPI_SSPCON1 = SPI_SSPCON1 & 0xEF ; // 指定のクロック極性を０設定する
-     }
+if (mode == SPI_MODE1 || mode == SPI_MODE3) {
+SPI_SSPSTAT = SPI_SSPSTAT | 0x40 ; // Set the specified clock phase to 1
+} else {
+SPI_SSPSTAT = SPI_SSPSTAT & 0xBF ; // set the specified clock phase to 0
+}
+if (mode == SPI_MODE2 || mode == SPI_MODE3) {
+SPI_SSPCON1 = SPI_SSPCON1 | 0x10 ; // Set the specified clock polarity to 1
+} else {
+SPI_SSPCON1 = SPI_SSPCON1 & 0xEF ; // set the specified clock polarity to 0
+}
 }
 */
 
-/*******************************************************************************
-*  SPI_setClockDivider(divider)                                                *
-*    ＳＰＩの通信速度設定を行う処理                                            *
-*    divider :SPIの通信速度を設定します                                        *
-*             SPI_CLOCK_DIVADD = FOSC/((SSPxADD + 1)*4)                        *
-*    rate    :SSPxADDに設定する値                                              *
-*******************************************************************************/
+/* ************************************************ *****************************
+* SPI_setClockDivider(divider) *
+* Process for setting SPI communication speed *
+*divider : Set SPI communication speed*
+* SPI_CLOCK_DIVADD = FOSC/((SSPxADD + 1)*4) *
+* rate : Value to be set in SSPxADD *
+**************************************************** **************************** */
 /*
 void SPI_setClockDivider(char divider,char rate)
 {
-     if (divider == SPI_CLOCK_DIVADD) {
-          SPI_SSPADD = rate ;
-     }
-     SPI_SSPCON1 = (SPI_SSPCON1 & 0xF0)  | divider ;    // 指定のクロック速度を設定する
+if (divider == SPI_CLOCK_DIVADD) {
+SPI_SSPADD = rate ;
+}
+SPI_SSPCON1 = (SPI_SSPCON1 & 0xF0) | divider ; // Sets the specified clock speed
 }
 */
-/*******************************************************************************
-*  ans = SPI_transfer(dt)                                                      *
-*    ＳＰＩ通信でのデータ送信とデータ受信を行う処理                            *
-*                                                                              *
-*    dt  : ８ビットの送信するデータを指定します                                *
-*    ans : ８ビットの受信したデータを返します                                  *
-*******************************************************************************/
-char SPI_transfer(char dt)
+/* ************************************************ *****************************
+* ans = SPI_transfer(dt) *
+* Processing for sending and receiving data via SPI communication *
+* *
+* dt : Specify 8-bit data to send *
+* ans : Returns 8-bit received data *
+**************************************************** **************************** */
+char  SPI_transfer ( char dt)
 {
-     SPI1BUF = dt ;            // データの送信
-     while(SPI1STATbits.SPITBF == 0) ;      // 受信待ち
-     IFS0bits.SPI1IF = 0 ;              // フラグクリア
-     return SPI1BUF ;          // データの受信
+SPI1BUF = dt ; // Send data
+ while (SPI1STATbits. SPITBF == 0 ) ; // Wait for reception
+IFS0bits.SPI1IF = 0 ; // Clear flag
+ return SPI1BUF ; // Receive data
 }
