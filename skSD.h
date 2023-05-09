@@ -1,129 +1,129 @@
-/*******************************************************************************
-*  skSDlib.h - MMC/SDCのアクセスを行う関数のインクルードファイル               *
-*                                                                              *
-* ============================================================================ *
-*   VERSION  DATE        BY             CHANGE/COMMENT                         *
-* ---------------------------------------------------------------------------- *
-*   1.00     2012-04-30  きむ茶工房     Create                                 *
-*******************************************************************************/
-#ifndef _SKSDLIB_H_
-#define _SKSDLIB_H_
+/* ************************************************ *****************************
+* skSDlib.h - Include file for functions that access MMC/SDC *
+* *
+* ================================================= ===========================*
+* VERSION DATE BY CHANGE/COMMENT *
+* ------------------------------------------------- ---------------------------*
+* 1.00 2012-04-30 Kimucha Kobo Create *
+**************************************************** **************************** */
+# ifndef _SKSDLIB_H_
+# define  _SKSDLIB_H_
 
-//#include <htc.h>              // delay用に必要
+// #include <htc.h> // needed for delay
 
-#ifndef _XTAL_FREQ
+# ifndef _XTAL_FREQ
  // Unless already defined assume 8MHz system frequency
  // This definition is required to calibrate __delay_us() and __delay_ms()
- #define _XTAL_FREQ 8000000    // 使用するPIC等により動作周波数値を設定する
-#endif
+# define  _XTAL_FREQ  8000000  // Set the operating frequency value according to the PIC used
+# endif
 
-////////////////////////////////////////////////////////////////////////////////
-// ＳＰＩ関連
+//////////////////////////////////////////////////// _ ////////////////////////////////
+// SPI related
 
-#define CS   PORTBbits.RB2                        // カード選択信号
+# define  CS PORTBbits.RB2 // card select signal
 
-////////////////////////////////////////////////////////////////////////////////
-// ＭＭＣ／ＳＤＣアクセス関連
+//////////////////////////////////////////////////// _ ////////////////////////////////
+// MMC/SDC access related
 
-#define CMD0   0x00                     // カードへのリセットコマンド
-#define CMD1   0x01                     // MMCへの初期化コマンド
-#define CMD8   0x08                     // 動作電圧の確認とSDCのバージョンチェック
-#define CMD12  0x0C                     // データ読込みを停止させるコマンド
-#define CMD13  0x0D                     // 書込みの状態を問い合わせるコマンド
-#define CMD16  0x10                     // ブロックサイズの初期値設定コマンド
-#define CMD17  0x11                     // シングルブロック読込み要求コマンド
-#define CMD24  0x18                     // シングルブロック書込み要求コマンド
-#define ACMD41 0x29                     // SDCへの初期化コマンド
-#define CMD55  0x37                     // ACMD41/ACMD23とセットで使用するコマンド
-#define CMD58  0x3A                     // OCRの読出しコマンド
+# define  CMD0  0x00  // reset command to card
+# define  CMD1  0x01  // initialization command to MMC
+# define  CMD8  0x08  // Confirm operating voltage and SDC version check
+# define  CMD12  0x0C  // Command to stop reading data
+# define  CMD13  0x0D  // Command to query write status
+# define  CMD16  0x10  // block size initial value setting command
+# define  CMD17  0x11  // single block read request command
+# define  CMD24  0x18  // Single block write request command
+# define  ACMD41  0x29  // initialization command to SDC
+# define  CMD55  0x37  // command used in combination with ACMD41/ACMD23
+# define  CMD58  0x3A  // OCR read command
 
-#define SECTER_BYTES  512               // １セクタのバイト数
+# define  SECTER_BYTES  512  // number of bytes in one sector
 
-char MMCbuffer[SECTER_BYTES] ;          // ＭＭＣカード読書きバッファ
-int  CardType ;                         // カードの種類
-int  FatType ;                          // ＦＡＴの種類
+char MMCbuffer[SECTER_BYTES] ; // MMC card read/write buffer
+int CardType ; // card type
+int FatType ; // Type of FAT
 
 
-////////////////////////////////////////////////////////////////////////////////
-// ＦＡＴ関連
+//////////////////////////////////////////////////// _ ////////////////////////////////
+// FAT related
 
-#define O_READ    0x01                  // ファイルの読込みオープン
-#define O_RDWR    0x02                  // ファイルの読込みと書込みオープン
-#define O_APPEND  0x04                  // ファイルの追加書込みオープン
+# define  O_READ  0x01  // open file for reading
+# define  O_RDWR  0x02  // open file for reading and writing
+# define  O_APPEND  0x04  // open file for appending
 
-//ＦＡＴファイルシステムのパラメータ
-unsigned long Dir_Entry_StartP ;        // ディレクトリエントリの開始セクタ位置
-unsigned int  DirEntry_SectorSU ;       // ディレクトリエントリのセクタ個数
-unsigned long Data_Area_StartP ;        // データ領域の開始セクタ位置
-unsigned long Fat_Area_StartP ;         // FAT領域の開始セクタ位置
-unsigned int  Cluster1_SectorSU ;       // １クラスタあたりのセクタ数
-unsigned long SectorsPerFatSU ;         // １組のFAT領域が占めるセクタ数
+// FAT file system parameters
+unsigned  long Dir_Entry_StartP ; // start sector position of directory entry
+unsigned  int DirEntry_SectorSU ; // Number of sectors in directory entry
+unsigned  long Data_Area_StartP ; // Start sector position of data area
+unsigned  long Fat_Area_StartP ; // Start sector position of FAT area
+unsigned  int Cluster1_SectorSU ; // number of sectors per cluster
+unsigned  long SectorsPerFatSU ; // The number of sectors occupied by one set of FAT areas
 
-// ファイルのアクセス情報
+// file access information
 struct FDS {
-     unsigned int  Oflag ;              // アクセスするオープンフラグを保存
-     unsigned int  DirEntryIndex ;      // ディレクトリエントリの検索した場所の位置
-     unsigned long FileSize ;           // ファイルのサイズ
-     unsigned long FileSeekP ;          // ファイルの次読み出す位置
-     unsigned long AppendSize ;         // 追加書込みしたファイルのサイズ
-     unsigned long FirstFatno ;         // データ格納先のFAT番号
+ unsigned  int Oflag ; // store open flag to access
+ unsigned  int DirEntryIndex ; // Position of searched location for directory entry
+ unsigned  long FileSize ; // file size
+ unsigned  long FileSeekP ; // Position to read next file
+ unsigned  long AppendSize ; // Size of file written additionally
+ unsigned  long FirstFatno ; // Data storage destination FAT number
 } ;
 struct FDS fds ;
 
-// ＦＡＴファイルシステム(FAT12/FAT16)のパラメータ構造体(512バイト)
+// FAT file system (FAT12/FAT16) parameter structure (512 bytes)
 struct FAT_PARA {
-     unsigned char jump[3] ;            // ブート用のジャンプコード
-     unsigned char oemId[8] ;           // フォーマット時のボリューム名
-     unsigned int  BytesPerSector ;     // １セクタあたりのバイト数、通常は512バイト
-     unsigned char SectorsPerCluster ;  // １クラスタあたりのセクタ数
-     unsigned int  ReservedSectorCount ;// ブートセクタ以降の予約領域のセクタ数
-     unsigned char FatCount ;           // FATの組数(バックアップFAT数)、通常は２組
-     unsigned int  RootDirEntryCount ;  // ディレクトリの作成可能個数、通常は512個
-     unsigned int  TotalSectors16 ;     // 全領域のセクター総数(FAT12/FAT16用)
-     unsigned char MediaType ;          // FAT領域の先頭の値、通常は0xF8
-     unsigned int  SectorsPerFat16 ;    // １組のFAT領域が占めるセクタ数(FAT12/FAT16用)
-     unsigned int  SectorsPerTrack ;    // １トラックあたりのセクタ数
-     unsigned int  HeadCount ;          // ヘッド数
-     unsigned long HidddenSectors ;     // 隠蔽されたセクタ数
-     unsigned long TotalSectors32 ;     // 全領域のセクター総数(FAT32用)
-     unsigned long SectorsPerFat32 ;    // １組のFAT領域が占めるセクタ数(FAT32用)
-     unsigned int  FlagsFat32 ;         // FATの有効無効等の情報フラグ
-     unsigned int  VersionFat32 ;
-     unsigned long RootDirClusterFat32 ;// ディレクトリのスタートクラスタ(FAT32用)
-     unsigned char Dumy[6] ;
-     unsigned char FileSystemType[8] ;  // FATの種類("FAT12/16")(FAT32は20バイト下に有る)
-     unsigned char BootCode[448] ;      // ブートコード領域
-     unsigned char BootSectorSig0 ;     // 0x55
-     unsigned char BootSectorSig1 ;     // 0xaa
+ unsigned  char jump[ 3 ] ; // Jump code for boot
+ unsigned  char oemId[ 8 ] ; // Volume name when formatting
+ unsigned  int BytesPerSector ; // number of bytes per sector, typically 512 bytes
+ unsigned  char SectorsPerCluster ; // number of sectors per cluster
+ unsigned  int ReservedSectorCount ; // Number of sectors in reserved area after boot sector
+ unsigned  char FatCount ; // Number of FAT pairs (number of backup FATs), usually 2 pairs
+ unsigned  int RootDirEntryCount ; // Number of directories that can be created, usually 512
+ unsigned  int TotalSectors16 ; // Total number of sectors in all areas (for FAT12/FAT16)
+ unsigned  char MediaType ; // first value in FAT area, usually 0xF8
+ unsigned  int SectorsPerFat16 ; // Number of sectors occupied by one set of FAT area (for FAT12/FAT16)
+ unsigned  int SectorsPerTrack ; // number of sectors per track
+ unsigned  int HeadCount ; // Number of heads
+ unsigned  long HiddenSectors ; // number of hidden sectors
+ unsigned  long TotalSectors32 ; // Total number of sectors in all areas (for FAT32)
+ unsigned  long SectorsPerFat32 ; // Number of sectors occupied by one set of FAT area (for FAT32)
+ unsigned  int FlagsFat32 ; // Information flags such as FAT enable/disable
+ unsigned  int VersionFat32 ;
+ unsigned  long RootDirClusterFat32 ; // Directory start cluster (for FAT32)
+ unsigned  char Dumy[ 6 ];
+ unsigned  char FileSystemType[ 8 ] ; // FAT type ("FAT12/16") (FAT32 is 20 bytes below)
+ unsigned  char BootCode[ 448 ] ; // boot code area
+ unsigned  char BootSectorSig0 ; // 0x55
+ unsigned  char BootSectorSig1 ; // 0xaa
 } ;
 
-// ディレクトリエントリーの構造体(32バイト)
+// Directory entry structure (32 bytes)
 struct DIR_ENTRY {
-     unsigned char FileName[11] ;       // ファイル名(8)+拡張子(3)
-     unsigned char Attributes ;         // ファイルの属性
-     unsigned char ReservedNT ;         // Windows NT 用 予約領域
-     unsigned char CreationTimeTenths ; // ファイル作成時間の1/10秒単位をあらわす
-     unsigned int  CreationTime ;       // ファイルの作成時間(hhhhhmmmmmmsssss)
-     unsigned int  CreationDate ;       // ファイルの作成日(yyyyyyymmmmddddd)
-     unsigned int  LastAccessDate ;     // 最終のアクセス日
-     unsigned int  FirstClusterHigh ;   // データ格納先のFAT番号上位２バイト
-     unsigned int  LastWriteTime ;      // 最終のファイル書込み時間
-     unsigned int  LastWriteDate ;      // 最終のファイル書込み日
-     unsigned int  FirstClusterLow ;    // データ格納先のFAT番号下位２バイト
-     unsigned long FileSize ;           // ファイルのサイズ
+ unsigned  char FileName[ 11 ] ; // File name (8) + extension (3)
+ unsigned  char Attributes ; // file attributes
+ unsigned  char ReservedNT ; // reserved area for Windows NT
+ unsigned  char CreationTimeTenths ; // File creation time in tenths of a second
+ unsigned  int CreationTime ; // File creation time (hhhhmmmmmmsssss)
+ unsigned  int CreationDate ; // File creation date (yyyyyyymmmmddddd)
+ unsigned  int LastAccessDate ; // last access date
+ unsigned  int FirstClusterHigh ; // FAT number upper 2 bytes of data storage destination
+ unsigned  int LastWriteTime ; // last file write time
+ unsigned  int LastWriteDate ; // last file write date
+ unsigned  int FirstClusterLow ; // Lower 2 bytes of FAT number of data storage destination
+ unsigned  long FileSize ; // file size
 } ;
 
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////// _ ////////////////////////////////
 //
-int SD_Init() ;
-int SD_Open(const char *filename,int oflag) ;
-void SD_Close() ;
-int SD_Write(char *buf,int nbyte) ;
-int SD_Read(char *buf,int nbyte) ;
-int SD_fGets(char *buf,int nbyte) ;
-unsigned long SD_Size() ;
-unsigned long SD_Position() ;
-unsigned long SD_Seek(unsigned long offset,int sflag) ;
+int  SD_Init () ;
+int  SD_Open ( const  char *filename, int oflag) ;
+void  SD_Close ();
+int  SD_Write ( char *buf, int nbyte) ;
+int  SD_Read ( char *buf, int nbyte) ;
+int  SD_fGets ( char *buf, int nbyte) ;
+unsigned  long  SD_Size () ;
+unsigned  long  SD_Position () ;
+unsigned  long  SD_Seek ( unsigned  long offset, int sflag) ;
 
 
-#endif
+# endif
